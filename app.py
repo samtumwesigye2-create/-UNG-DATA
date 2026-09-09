@@ -2,7 +2,7 @@ from fastapi import FastAPI,Header,HTTPException
 from pydantic import BaseModel
 from domain import register_dataset,list_datasets
 from integration import dependencies
-SYSTEM_ID="UNG-NOVA"; LEGACY_ID="UNG-DATA"; VERSION="0.3.0"
+SYSTEM_ID="UNG-NOVA"; LEGACY_ID="UNG-DATA"; VERSION="0.4.0"
 app=FastAPI(title=SYSTEM_ID,version=VERSION,description="UNG Data and Analytics System")
 class DatasetIn(BaseModel): name:str; classification:str="internal"
 def auth(p,h):
@@ -15,11 +15,13 @@ def health(): return {"status":"ok","service":SYSTEM_ID,"version":VERSION}
 @app.get("/ready")
 def ready(): return {"status":"ready","service":SYSTEM_ID,"dependencies":dependencies()}
 @app.get("/v1/system")
-def system(): return {"system_id":SYSTEM_ID,"legacy_id":LEGACY_ID,"domain":"data-analytics","capabilities":["datasets","logistics-event-ingest","logistics-kpis","on-time-rate","exception-rate","dwell-time","delivery-outcomes"],"dependencies":dependencies()}
+def system(): return {"system_id":SYSTEM_ID,"legacy_id":LEGACY_ID,"domain":"data-analytics","capabilities":["datasets","logistics-event-ingest","logistics-kpis","21-supply-chain-kpi-catalog","supply-chain-performance","operational-reporting","csv-export"],"dependencies":dependencies()}
 @app.get("/v1/datasets")
 def datasets(x_ung_permissions:str|None=Header(None)): auth("nova.datasets.read",x_ung_permissions); return list_datasets()
 @app.post("/v1/datasets",status_code=201)
 def add(body:DatasetIn,x_ung_permissions:str|None=Header(None)): auth("nova.datasets.write",x_ung_permissions); return register_dataset(body.name,body.classification)
 
 from logistics_kpis import router as logistics_router
+from supply_chain_kpis import router as supply_chain_router
 app.include_router(logistics_router)
+app.include_router(supply_chain_router)
