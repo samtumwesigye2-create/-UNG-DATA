@@ -15,7 +15,7 @@ def health(): return {"status":"ok","service":SYSTEM_ID,"version":VERSION}
 @app.get("/ready")
 def ready(): return {"status":"ready","service":SYSTEM_ID,"dependencies":dependencies()}
 @app.get("/v1/system")
-def system(): return {"system_id":SYSTEM_ID,"legacy_id":LEGACY_ID,"domain":"data-analytics","capabilities":["datasets","logistics-event-ingest","logistics-kpis","21-supply-chain-kpi-catalog","supply-chain-performance","supply-chain-kpi-observation-ingest","operational-reporting","csv-export"],"dependencies":dependencies()}
+def system(): return {"system_id":SYSTEM_ID,"legacy_id":LEGACY_ID,"domain":"data-analytics","capabilities":["datasets","logistics-event-ingest","logistics-kpis","51-supply-chain-kpi-catalog","supply-chain-performance","supply-chain-kpi-observation-ingest","operational-reporting","csv-export"],"dependencies":dependencies()}
 @app.get("/v1/datasets")
 def datasets(x_ung_permissions:str|None=Header(None)): auth("nova.datasets.read",x_ung_permissions); return list_datasets()
 @app.post("/v1/datasets",status_code=201)
