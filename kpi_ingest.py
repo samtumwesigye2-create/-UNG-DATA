@@ -3,6 +3,7 @@ from fastapi import APIRouter, Header, HTTPException
 from pydantic import BaseModel, Field
 from app import auth
 from supply_chain_kpis import CATALOG, ensure, conn
+from nexus_client import publish as publish_to_nexus
 
 router=APIRouter(prefix='/v1/supply-chain',tags=['Supply Chain KPI Ingest'])
 VALID={k for _,k,_,_ in CATALOG}
@@ -23,8 +24,20 @@ class BulkIn(BaseModel): observations:list[ObservationIn]
 def _put(c,b:ObservationIn):
     if b.kpi_key not in VALID: raise HTTPException(422,f'unknown_kpi_key:{b.kpi_key}')
     ts=b.measured_at or now()
-    return c.execute('''INSERT INTO nova_supply_chain_kpi_observations(kpi_key,entity_id,value,period_start,period_end,source_system,measured_at)
+    row=c.execute('''INSERT INTO nova_supply_chain_kpi_observations(kpi_key,entity_id,value,period_start,period_end,source_system,measured_at)
         VALUES(%s,%s,%s,%s,%s,%s,%s) RETURNING *''',(b.kpi_key,b.entity_id,b.value,b.period_start,b.period_end,b.source_system,ts)).fetchone()
+    publish_to_nexus(
+        "analytics.observation",
+        {
+            "subject": b.entity_id,
+            "kpi_key": b.kpi_key,
+            "value": b.value,
+            "source_system": b.source_system,
+            "measured_at": ts.isoformat(),
+        },
+        correlation_id=f"{b.entity_id}:{b.kpi_key}:{ts.isoformat()}",
+    )
+    return row
 
 @router.post('/observations',status_code=201)
 def ingest(b:ObservationIn,x_ung_permissions:str|None=Header(None)):
