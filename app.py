@@ -2,6 +2,7 @@ from fastapi import FastAPI,Header,HTTPException
 from pydantic import BaseModel
 from domain import register_dataset,list_datasets
 from integration import dependencies
+from nexus_client import publish as publish_to_nexus
 SYSTEM_ID="UNG-NOVA"; LEGACY_ID="UNG-DATA"; VERSION="0.4.1"
 app=FastAPI(title=SYSTEM_ID,version=VERSION,description="UNG Data and Analytics System")
 class DatasetIn(BaseModel): name:str; classification:str="internal"
@@ -27,3 +28,13 @@ from kpi_ingest import router as kpi_ingest_router
 app.include_router(logistics_router)
 app.include_router(supply_chain_router)
 app.include_router(kpi_ingest_router)
+
+
+@app.on_event("startup")
+def machine_mind_acceptance_probe():
+    result = publish_to_nexus(
+        "analytics.observation",
+        {"subject":"nova-startup-acceptance","label":"nova-startup-acceptance","confidence":1.0},
+        correlation_id="nova-startup-acceptance",
+    )
+    print("NOVA_MACHINE_MIND_ACCEPTANCE", result, flush=True)
