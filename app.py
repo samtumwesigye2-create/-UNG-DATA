@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from domain import register_dataset,list_datasets
 from integration import dependencies
 from nexus_client import publish as publish_to_nexus
-SYSTEM_ID="UNG-NOVA"; LEGACY_ID="UNG-DATA"; VERSION="0.4.1"
+SYSTEM_ID="UNG-NOVA"; LEGACY_ID="UNG-DATA"; VERSION="0.4.2"
 app=FastAPI(title=SYSTEM_ID,version=VERSION,description="UNG Data and Analytics System")
 class DatasetIn(BaseModel): name:str; classification:str="internal"
 def auth(p,h):
