@@ -2,8 +2,6 @@ from fastapi import FastAPI,Header,HTTPException
 from pydantic import BaseModel
 from domain import register_dataset,list_datasets
 from integration import dependencies
-from nexus_client import publish as publish_to_nexus
-SYSTEM_ID="UNG-NOVA"; LEGACY_ID="UNG-DATA"; VERSION="0.4.2"
 app=FastAPI(title=SYSTEM_ID,version=VERSION,description="UNG Data and Analytics System")
 class DatasetIn(BaseModel): name:str; classification:str="internal"
 def auth(p,h):
@@ -16,25 +14,9 @@ def health(): return {"status":"ok","service":SYSTEM_ID,"version":VERSION}
 @app.get("/ready")
 def ready(): return {"status":"ready","service":SYSTEM_ID,"dependencies":dependencies()}
 @app.get("/v1/system")
-def system(): return {"system_id":SYSTEM_ID,"legacy_id":LEGACY_ID,"domain":"data-analytics","capabilities":["datasets","logistics-event-ingest","logistics-kpis","51-supply-chain-kpi-catalog","supply-chain-performance","supply-chain-kpi-observation-ingest","operational-reporting","csv-export"],"dependencies":dependencies()}
 @app.get("/v1/datasets")
 def datasets(x_ung_permissions:str|None=Header(None)): auth("nova.datasets.read",x_ung_permissions); return list_datasets()
 @app.post("/v1/datasets",status_code=201)
 def add(body:DatasetIn,x_ung_permissions:str|None=Header(None)): auth("nova.datasets.write",x_ung_permissions); return register_dataset(body.name,body.classification)
-
 from logistics_kpis import router as logistics_router
 from supply_chain_kpis import router as supply_chain_router
-from kpi_ingest import router as kpi_ingest_router
-app.include_router(logistics_router)
-app.include_router(supply_chain_router)
-app.include_router(kpi_ingest_router)
-
-
-@app.on_event("startup")
-def machine_mind_acceptance_probe():
-    result = publish_to_nexus(
-        "analytics.observation",
-        {"subject":"nova-startup-acceptance","label":"nova-startup-acceptance","confidence":1.0},
-        correlation_id="nova-startup-acceptance",
-    )
-    print("NOVA_MACHINE_MIND_ACCEPTANCE", result, flush=True)
