@@ -6,6 +6,11 @@ from logistics_kpis import conn, ensure_schema
 router=APIRouter(prefix='/v1/supply-chain',tags=['Supply Chain KPIs'])
 def now(): return datetime.now(timezone.utc)
 CATALOG=[
+ (1,'perfect_order_fulfillment','Perfect Order Fulfillment','percent'),
+ (2,'otif','On Time In Full','percent'),
+ (3,'order_fulfillment_cycle_time','Order Fulfillment Cycle Time','minutes'),
+ (4,'end_to_end_visibility_coverage','End-to-End Visibility Coverage','percent'),
+]
 
 def ensure():
  ensure_schema()
