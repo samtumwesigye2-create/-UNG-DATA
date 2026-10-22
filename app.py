@@ -1,3 +1,6 @@
+SYSTEM_ID='UNG-NOVA'
+LEGACY_ID='UNG-DATA'
+VERSION='1.0.0'
 from fastapi import FastAPI,Header,HTTPException
 from pydantic import BaseModel
 from domain import register_dataset,list_datasets
@@ -20,3 +23,5 @@ def datasets(x_ung_permissions:str|None=Header(None)): auth("nova.datasets.read"
 def add(body:DatasetIn,x_ung_permissions:str|None=Header(None)): auth("nova.datasets.write",x_ung_permissions); return register_dataset(body.name,body.classification)
 from logistics_kpis import router as logistics_router
 from supply_chain_kpis import router as supply_chain_router
+app.include_router(logistics_router)
+app.include_router(supply_chain_router)
